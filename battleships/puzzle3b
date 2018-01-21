@@ -1,0 +1,6 @@
+# Row clues
+2, 2, 1, 7, 2, 1, 2, 2, 0, 4
+# Column clues
+2, 3, 0, 1, 7, 2, 1, 4, 0, 3, 0
+# Number of Ships (shortest first)
+5, 4, 2, 1

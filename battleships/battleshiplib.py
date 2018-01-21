@@ -31,8 +31,8 @@ class PuzzleInfo(object):
           ships[1] = # of length 2 ships
           etc.
         """
-        self.width = len(rowclues)
-        self.height = len(colclues)
+        self.width = len(colclues)
+        self.height = len(rowclues)
         self.rowclues = rowclues
         self.colclues = colclues
         self.ships = ships
@@ -45,8 +45,9 @@ class Grid(PuzzleState):
         Initialize a blank state, given the puzzle information
         """
         self.info = info
-        self.grid = np.zeros([info.height, info.width], dtype=np.int8)
-        # Grid is indexed as (x, y), with (0,0) in the top left corner
+        self.grid = np.zeros([info.width, info.height], dtype=np.int8)
+        # Grid is indexed as (x, y) = (col, row), with (0,0) in the top left corner
+        # Note that this is TRANSPOSED compared to the way that numpy prints arrays
         # 0 = unknown
         # 1 = ship
         # 2 = water
@@ -69,10 +70,16 @@ class Grid(PuzzleState):
 
         # Now, add in the clues
         for idx, num in enumerate(self.info.rowclues):
-            rows[idx + 2] = '{:3d}'.format(num) + " " + rows[idx + 2]
+            if num is None:
+                rows[idx + 2] = '  ? ' + rows[idx + 2]
+            else:
+                rows[idx + 2] = '{:3d}'.format(num) + " " + rows[idx + 2]
         rows[0] = "    "
         for idx, num in enumerate(self.info.colclues):
-            rows[0] += " " + str(num)
+            if num is None:
+                rows[0] += " ?"
+            else:
+                rows[0] += " " + str(num)
 
         def set_char(x, y, char):
             row = y + 2
@@ -154,6 +161,8 @@ class BattleShips(PuzzleSolver):
                 raise Inconsistent()
             if all(i == 0 for i in remaining):
                 # We have a solution - grid is valid, and all boats accounted for
+                # Fill in any unknowns with water
+                water_fill(self.state)
                 raise Solved()
 
             # If all one-length ships are accounted for, fill in all holes with water
@@ -419,6 +428,19 @@ def set_full_ship(placement, grid):
         changed = changed | set_water(x, y + length, grid)
     return changed
 
+def water_fill(grid):
+    """
+    Fills all unknown squares with water
+    Returns True if anything changed
+    """
+    changed = False
+    for x in range(grid.info.width):
+        for y in range(grid.info.height):
+            if grid.grid[x, y] == UNKNOWN:
+                changed = True
+                grid.grid[x, y] = WATER
+    return changed
+
 def countrow(row, setting):
     """Counts the number of a given setting in a row"""
     return np.count_nonzero(row==setting)
@@ -427,6 +449,7 @@ def validate(grid):
     """Make sure that the given grid is valid"""
     # Check to make sure the rows and columns are valid
     def valid_row(row, clue):
+        if clue is None: return
         unknownCount = countrow(row, UNKNOWN)
         shipCount = countrow(row, SHIP)
         if shipCount + unknownCount < clue or shipCount > clue:
@@ -482,6 +505,12 @@ def simple_logic(puzzle):
             if not collist[x]:
                 continue
 
+            # If the clue is unknown, there's nothing we can do
+            clue = puzzle.state.info.colclues[x]
+            if clue is None:
+                collist[x] = False
+                continue
+
             line = puzzle.state.grid[x]
             unknownCount = countrow(line, UNKNOWN)
             if unknownCount == 0:
@@ -489,7 +518,6 @@ def simple_logic(puzzle):
                 continue
 
             shipCount = countrow(line, SHIP)
-            clue = puzzle.state.info.colclues[x]
             if shipCount == clue:
                 # Set the rest to water
                 collist[x] = False
@@ -515,6 +543,12 @@ def simple_logic(puzzle):
             if not rowlist[y]:
                 continue
 
+            # If the clue is unknown, there's nothing we can do
+            clue = puzzle.state.info.rowclues[y]
+            if clue is None:
+                rowlist[y] = False
+                continue
+
             line = puzzle.state.grid[:,y]
             unknownCount = countrow(line, UNKNOWN)
             if unknownCount == 0:
@@ -522,10 +556,9 @@ def simple_logic(puzzle):
                 continue
 
             shipCount = countrow(line, SHIP)
-            clue = puzzle.state.info.rowclues[y]
             if shipCount == clue:
                 # Set the rest to water
-                rowlist[x] = False
+                rowlist[y] = False
                 changed = True
                 for x in range(cols):
                     if line[x] == 0:
@@ -535,7 +568,7 @@ def simple_logic(puzzle):
             waterCount = countrow(line, WATER)
             if waterCount + clue == len(line):
                 # Set the rest to ships
-                rowlist[x] = False
+                rowlist[y] = False
                 changed = True
                 for x in range(cols):
                     if line[x] == 0:
@@ -548,14 +581,15 @@ def find_allowed(length, line, clue):
     Such positions must include the placement of a new ship tile
     """
     # Check the length isn't too long for the line
-    if clue < length:
+    if clue is not None and clue < length:
         return []
     # Check that there are still empty cells available
-    ships = countrow(line, SHIP)
-    if ships == clue:
+    unknowns = countrow(line, UNKNOWN)
+    if unknowns == 0:
         return []
 
     result = []
+    ships = countrow(line, SHIP)
     # Run through all possible start positions, and see if they're valid
     for start in range(0, len(line) - length + 1):
         # Check to make sure we're not making a longer ship than we want.
@@ -572,7 +606,7 @@ def find_allowed(length, line, clue):
         if unknowns == 0:
             continue
         # Check to make sure we haven't put too many ships on this line.
-        if ships + unknowns > clue:
+        if clue is not None and ships + unknowns > clue:
             continue
         # Looks feasible. Add it to the list
         result.append(start)

@@ -21,8 +21,8 @@ print("**************************************************************")
 
 # The file format is as follows:
 # Any line starting with a # is ignored
-# row clues (comma separated)
-# column clues (comma separated)
+# row clues (comma separated, may contain ?)
+# column clues (comma separated, may contain ?)
 # number of each length of ship (comma separated, starts with smallest ship)
 # initial information (optional, as "x, y, information")
 
@@ -61,7 +61,7 @@ try:
     with open(filename) as f:
         for line in f:
             line = line.strip()
-            if line[0] != "#":
+            if len(line) > 0 and line[0] != "#":
                 data.append(line)
 except:
     print("Unable to read", filename)
@@ -74,11 +74,11 @@ if len(data) < 3:
 # Extract row clues
 rowclues = data[0].split(",")
 rowclues = map(lambda x: x.strip(), rowclues)
-rowclues = list(map(int, rowclues))
+rowclues = [int(i) if i != "?" else None for i in rowclues]
 # Extract column clues
 colclues = data[1].split(",")
 colclues = map(lambda x: x.strip(), colclues)
-colclues = list(map(int, colclues))
+colclues = [int(i) if i != "?" else None for i in colclues]
 # Extract number of ships
 ships = data[2].split(",")
 ships = map(lambda x: x.strip(), ships)

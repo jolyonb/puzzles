@@ -1,0 +1,13 @@
+# Row clues
+4, 0, 2, 1, 2, 1
+# Column clues
+1, 0, 4, 0, 3, 2
+# Number of Ships (shortest first)
+3, 2, 1
+# Initial information: x, y, information
+# Positions start at (0, 0) in the top left corner, given as (x, y)
+# w = water
+# o = one-length boat
+# # = boat (unknown piece)
+# <, >, ^, v, boat ends
+2, 2, w

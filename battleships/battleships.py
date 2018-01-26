@@ -4,7 +4,7 @@
 Battleships/Bimaru solver
 
 Run as:
-python battleships.py puzzle.dat
+python battleships.py puzzlefile
 See below for description of file format for puzzles
 
 Jolyon Bloomfield, Jan 2018
@@ -52,7 +52,7 @@ print("**************************************************************")
 try:
     filename = sys.argv[1]
 except:
-    print("Specify the puzzle file to solve as a command line argument. Eg, puzzle1.dat")
+    print("Specify the puzzle file to solve as a command line argument. Eg, puzzle1")
     sys.exit()
 
 # Get the data out of that file

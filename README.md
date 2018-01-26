@@ -6,11 +6,13 @@ by Jolyon Bloomfield
 This repository contains solvers for solving logic puzzles using python. Currently, we have the following solvers available:
 
 * [Battleships (Bimaru)](battleships/README.md). Can find multiple solutions and can handle unknown clues.
+* [Sudoku](sudoku/README.md). Can find multiple solutions.
 
-These solvers are built on top of `framework.py`, which provides a mechanism for making guesses in a recursive fashion, finding multiple solutions, and backtracking.
+Various frameworks have been written to help with different puzzle types. A generic backtracking structure is provided in `framework.py`. The dancing links algorithm for exact cover problems is coded in `links.py`.
 
 We hope to do the following puzzles soon!
 
 * Paint-By-Numbers (Nonogram)
-* Sudoku
 * 3D Battleships
+* Hex Battleships
+* Loop puzzles
